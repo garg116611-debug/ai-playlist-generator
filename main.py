@@ -1,40 +1,57 @@
-
+import requests
+import base64
+import os
+from dotenv import load_dotenv
 from llm_parser import parse_music_request
 
-import requests
+load_dotenv()
 
-TOKEN = input("Paste your Spotify Access Token:")
+def get_spotify_token():
+    client_id = os.getenv("SPOTIFY_CLIENT_ID")
+    client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
 
-headers = {
-    "Authorization": f"Bearer {TOKEN}"
-}
+    auth_str = f"{client_id}:{client_secret}"
+    b64_auth = base64.b64encode(auth_str.encode()).decode()
 
+    url = "https://accounts.spotify.com/api/token"
+    headers = {
+        "Authorization": f"Basic {b64_auth}",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    data = {"grant_type": "client_credentials"}
+
+    response = requests.post(url, headers=headers, data=data)
+    response.raise_for_status()   # important safety line
+    return response.json()["access_token"]
+
+
+def search_spotify(query):
+    token = get_spotify_token()
+
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+
+    params = {
+        "q": query,
+        "type": "track",
+        "limit": 5
+    }
+
+    url = "https://api.spotify.com/v1/search"
+    res = requests.get(url, headers=headers, params=params)
+    res.raise_for_status()
+    return res.json()["tracks"]["items"]
+
+
+# -------- PROGRAM START --------
 user_input = input("Enter your playlist request: ")
-
 search_query = parse_music_request(user_input)
-print(f"Searching Spotify for: {search_query}")
 
-params = {
-    "q": search_query,
-    "type": "track",
-    "limit": 5
-}
+print(f"\nSearching Spotify for: {search_query}\n")
 
+songs = search_spotify(search_query)
 
-
-url = "https://api.spotify.com/v1/search"
-
-response = requests.get(url, headers=headers, params=params)
-
-data = response.json()
-
-if "tracks" not in data:
-    print("❌ Error from Spotify API:")
-    print(data)
-else:
-    print("\n🎶 Songs List:\n")
-    for i, item in enumerate(data["tracks"]["items"], start=1):
-        song = item["name"]
-        artist = item["artists"][0]["name"]
-        print(f"{i}. {song} — {artist}")
-
+print("🎶 Songs List:\n")
+for i, song in enumerate(songs, start=1):
+    print(f"{i}. {song['name']} — {song['artists'][0]['name']}")
