@@ -62,7 +62,6 @@ search_query = build_search_query(
 )
 
 print(f"\nSearching Spotify for: {search_query}\n")
-search_query = parse_music_request(user_input)
 
 print(f"\nSearching Spotify for: {search_query}\n")
 
