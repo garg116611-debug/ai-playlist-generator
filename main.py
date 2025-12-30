@@ -3,6 +3,8 @@ import base64
 import os
 from dotenv import load_dotenv
 from llm_parser import parse_music_request
+from playlist_brain import build_search_query
+
 
 load_dotenv()
 
@@ -45,7 +47,21 @@ def search_spotify(query):
 
 
 # -------- PROGRAM START --------
-user_input = input("Enter your playlist request: ")
+print("Answer the following questions:\n")
+
+mind_speed = input("How is your mind? (racing / normal / slow): ").lower()
+lyrics = input("Do you want lyrics? (yes / sometimes / no): ").lower()
+context = input("Are you alone or with people? (alone / with people): ").lower()
+distraction = input("Distraction level? (low / medium / high): ").lower()
+
+search_query = build_search_query(
+    mind_speed,
+    lyrics,
+    context,
+    distraction
+)
+
+print(f"\nSearching Spotify for: {search_query}\n")
 search_query = parse_music_request(user_input)
 
 print(f"\nSearching Spotify for: {search_query}\n")
