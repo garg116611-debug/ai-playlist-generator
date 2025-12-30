@@ -18,3 +18,7 @@ def distraction_profile(level):
         "popularity": "high",
         "energy": "high"
     }
+
+if __name__ == "__main__":
+    profile = distraction_profile("low")
+    print(profile)
