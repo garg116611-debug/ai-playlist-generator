@@ -23,3 +23,12 @@ def build_search_query(mind_speed, lyrics, context, distraction):
 
     return " ".join(keywords)
 
+if __name__ == "__main__":
+    query = build_search_query(
+        mind_speed="racing",
+        lyrics="no",
+        context="alone",
+        distraction="low"
+    )
+
+    print("Spotify search query:", query)
