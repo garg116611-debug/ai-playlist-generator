@@ -919,52 +919,260 @@ body {
 }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 640px) {
-    .app-container {
-        padding: 12px;
-    }
 
-    .glass-card {
-        padding: 20px;
-    }
-
-    .logo-text {
-        font-size: 2rem;
-    }
-
-    .natural-input-wrapper {
+/* Tablet */
+@media (max-width: 768px) {
+    .header-top {
         flex-direction: column;
+        gap: 12px;
     }
 
-    .radio-group {
-        grid-template-columns: repeat(2, 1fr);
+    .auth-section {
+        order: -1;
     }
 
     .filters-row {
         grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+    }
+
+    .presets-grid {
+        justify-content: center;
+    }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+    .app-container {
+        padding: 10px;
+    }
+
+    .header {
+        padding: 24px 12px 20px;
+    }
+
+    .header-top {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .logo {
+        margin-bottom: 0;
+    }
+
+    .logo-icon {
+        font-size: 2rem;
+    }
+
+    .logo-text {
+        font-size: 1.8rem;
+    }
+
+    .tagline {
+        font-size: 0.9rem;
+    }
+
+    /* Auth Section */
+    .auth-section {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .btn-spotify {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+    }
+
+    .user-info {
+        padding: 6px 12px;
+    }
+
+    .user-name {
+        font-size: 0.85rem;
+    }
+
+    /* Cards */
+    .glass-card {
         padding: 16px;
+        border-radius: var(--radius-md);
+    }
+
+    .natural-input-section h2,
+    .mood-form-section h2 {
+        font-size: 1.2rem;
+    }
+
+    .section-desc {
+        font-size: 0.85rem;
+        margin-bottom: 16px;
+    }
+
+    /* Input */
+    .natural-input-wrapper {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .natural-input {
+        padding: 12px 14px;
+        font-size: 0.95rem;
+    }
+
+    /* Presets */
+    .presets-grid {
+        gap: 6px;
+    }
+
+    .preset-btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
+    /* Form */
+    .form-label {
+        font-size: 0.95rem;
+    }
+
+    .radio-group {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .radio-content {
+        padding: 12px 8px;
+    }
+
+    .radio-emoji {
+        font-size: 1.3rem;
+    }
+
+    .radio-text {
+        font-size: 0.8rem;
+    }
+
+    /* Filters */
+    .filters-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        padding: 14px;
+    }
+
+    .filter-label {
+        font-size: 0.8rem;
+    }
+
+    .filter-select {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 10px 18px;
+        font-size: 0.9rem;
+    }
+
+    .btn-large {
+        padding: 14px 20px;
+    }
+
+    /* Results */
+    .results-header h2 {
+        font-size: 1.3rem;
+    }
+
+    .search-query {
+        font-size: 0.85rem;
+    }
+
+    .songs-grid {
+        gap: 10px;
     }
 
     .song-card {
-        padding: 12px;
-        gap: 12px;
+        padding: 10px;
+        gap: 10px;
+    }
+
+    .song-number {
+        width: 24px;
+        height: 24px;
+        font-size: 0.8rem;
+    }
+
+    .preview-btn,
+    .no-preview {
+        width: 36px;
+        height: 36px;
     }
 
     .song-image {
-        width: 48px;
-        height: 48px;
+        width: 44px;
+        height: 44px;
+    }
+
+    .song-name {
+        font-size: 0.9rem;
+    }
+
+    .song-artist {
+        font-size: 0.8rem;
     }
 
     .song-duration {
         display: none;
     }
 
+    .spotify-link {
+        width: 32px;
+        height: 32px;
+    }
+
+    /* Actions */
     .results-actions {
         flex-direction: column;
+        gap: 10px;
     }
 
     .results-actions .btn {
         width: 100%;
+    }
+
+    /* History */
+    .history-header h2 {
+        font-size: 1.1rem;
+    }
+
+    .history-item {
+        padding: 10px 12px;
+    }
+
+    .history-query {
+        font-size: 0.85rem;
+    }
+
+    /* Footer */
+    .footer {
+        padding: 20px 12px;
+        font-size: 0.85rem;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 380px) {
+    .logo-text {
+        font-size: 1.5rem;
+    }
+
+    .radio-group {
+        grid-template-columns: 1fr;
+    }
+
+    .filters-row {
+        grid-template-columns: 1fr;
+    }
+
+    .preset-btn {
+        padding: 5px 10px;
+        font-size: 0.75rem;
     }
 }
