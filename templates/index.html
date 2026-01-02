@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodTunes - AI Playlist Generator</title>
+    <meta name="description"
+        content="Generate personalized Spotify playlists based on your mood and activities using AI">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <!-- Animated Background -->
+    <div class="bg-gradient"></div>
+    <div class="floating-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+
+    <!-- Main App Container -->
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">🎵</span>
+                <span class="logo-text">MoodTunes</span>
+            </div>
+            <p class="tagline">AI-Powered Playlist Generator</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Natural Language Input Section -->
+            <section class="natural-input-section glass-card">
+                <h2>✨ Quick Generate</h2>
+                <p class="section-desc">Describe your mood or activity in natural language</p>
+                <div class="natural-input-wrapper">
+                    <input type="text" id="naturalInput" class="natural-input"
+                        placeholder="e.g., 'I'm studying for exams' or 'feeling happy with friends'">
+                    <button id="quickGenerate" class="btn btn-primary">
+                        <span class="btn-icon">⚡</span> Generate
+                    </button>
+                </div>
+
+                <!-- Activity Presets -->
+                <div class="activity-presets">
+                    <p class="presets-label">Quick picks:</p>
+                    <div class="presets-grid" id="presetsGrid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Detailed Mood Form -->
+            <section class="mood-form-section glass-card">
+                <h2>🎯 Detailed Selection</h2>
+                <p class="section-desc">Fine-tune your playlist preferences</p>
+
+                <form id="moodForm" class="mood-form">
+                    <!-- Mind Speed -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="label-icon">🧠</span> How is your mind?
+                        </label>
+                        <div class="radio-group">
+                            <label class="radio-card">
+                                <input type="radio" name="mind_speed" value="racing">
+                                <span class="radio-content">
+                                    <span class="radio-emoji">⚡</span>
+                                    <span class="radio-text">Racing</span>
+                                </span>
+                            </label>
+                            <label class="radio-card">
+                                <input type="radio" name="mind_speed" value="normal" checked>
+                                <span class="radio-content">
+                                    <span class="radio-emoji">😌</span>
+                                    <span class="radio-text">Normal</span>
+                                </span>
+                            </label>
+                            <label class="radio-card">
+                                <input type="radio" name="mind_speed" value="slow">
+                                <span class="radio-content">
+                                    <span class="radio-emoji">😴</span>
+                                    <span class="radio-text">Slow</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Lyrics Preference -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="label-icon">🎤</span> Do you want lyrics?
+                        </label>
+                        <div class="radio-group">
+                            <label class="radio-card">
+                                <input type="radio" name="lyrics" value="yes">
+                                <span class="radio-content">
+                                    <span class="radio-emoji">🎵</span>
+                                    <span class="radio-text">Yes</span>
+                                </span>
+                            </label>
+                            <label class="radio-card">
+                                <input type="radio" name="lyrics" value="sometimes" checked>
+                                <span class="radio-content">
+                                    <span class="radio-emoji">🎶</span>
+                                    <span class="radio-text">Sometimes</span>
+                                </span>
+                            </label>
+                            <label class="radio-card">
+                                <input type="radio" name="lyrics" value="no">
+                                <span class="radio-content">
+                                    <span class="radio-emoji">🎹</span>
+                                    <span class="radio-text">No (Instrumental)</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Context -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="label-icon">👥</span> Are you alone or with people?
+                        </label>
+                        <div class="radio-group">
+                            <label class="radio-card">
+                                <input type="radio" name="context" value="alone" checked>
+                                <span class="radio-content">
+                                    <span class="radio-emoji">🧘</span>
+                                    <span class="radio-text">Alone</span>
+                                </span>
+                            </label>
+                            <label class="radio-card">
+                                <input type="radio" name="context" value="with people">
+                                <span class="radio-content">
+                                    <span class="radio-emoji">🎉</span>
+                                    <span class="radio-text">With People</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Distraction Level -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="label-icon">🎯</span> Distraction level needed?
+                        </label>
+                        <div class="radio-group">
+                            <label class="radio-card">
+                                <input type="radio" name="distraction" value="low">
+                                <span class="radio-content">
+                                    <span class="radio-emoji">📚</span>
+                                    <span class="radio-text">Low (Focus)</span>
+                                </span>
+                            </label>
+                            <label class="radio-card">
+                                <input type="radio" name="distraction" value="medium" checked>
+                                <span class="radio-content">
+                                    <span class="radio-emoji">☕</span>
+                                    <span class="radio-text">Medium</span>
+                                </span>
+                            </label>
+                            <label class="radio-card">
+                                <input type="radio" name="distraction" value="high">
+                                <span class="radio-content">
+                                    <span class="radio-emoji">🔥</span>
+                                    <span class="radio-text">High (Energy)</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- NEW: Filter Dropdowns Row -->
+                    <div class="filters-row">
+                        <!-- Language -->
+                        <div class="filter-group">
+                            <label class="filter-label">🌐 Language</label>
+                            <select name="language" id="languageSelect" class="filter-select">
+                                <option value="any">Any Language</option>
+                                <option value="english">English</option>
+                                <option value="hindi">Hindi</option>
+                                <option value="punjabi">Punjabi</option>
+                                <option value="tamil">Tamil</option>
+                                <option value="telugu">Telugu</option>
+                                <option value="korean">Korean (K-Pop)</option>
+                                <option value="spanish">Spanish</option>
+                                <option value="japanese">Japanese</option>
+                            </select>
+                        </div>
+
+                        <!-- Genre -->
+                        <div class="filter-group">
+                            <label class="filter-label">🎸 Genre</label>
+                            <select name="genre" id="genreSelect" class="filter-select">
+                                <option value="any">Any Genre</option>
+                                <option value="pop">Pop</option>
+                                <option value="rock">Rock</option>
+                                <option value="hiphop">Hip-Hop/Rap</option>
+                                <option value="electronic">Electronic/EDM</option>
+                                <option value="bollywood">Bollywood</option>
+                                <option value="lofi">Lo-Fi</option>
+                                <option value="classical">Classical</option>
+                                <option value="jazz">Jazz</option>
+                                <option value="rnb">R&B/Soul</option>
+                                <option value="metal">Metal</option>
+                            </select>
+                        </div>
+
+                        <!-- Era -->
+                        <div class="filter-group">
+                            <label class="filter-label">📅 Era</label>
+                            <select name="era" id="eraSelect" class="filter-select">
+                                <option value="any">Any Era</option>
+                                <option value="latest">Latest (2023-24)</option>
+                                <option value="2010s">2010s</option>
+                                <option value="2000s">2000s</option>
+                                <option value="90s">90s</option>
+                            </select>
+                        </div>
+
+                        <!-- Song Count -->
+                        <div class="filter-group">
+                            <label class="filter-label">🔢 Songs</label>
+                            <select name="song_count" id="songCountSelect" class="filter-select">
+                                <option value="5">5 Songs</option>
+                                <option value="10">10 Songs</option>
+                                <option value="15">15 Songs</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-large">
+                        <span class="btn-icon">🎧</span> Generate My Playlist
+                    </button>
+                </form>
+            </section>
+
+            <!-- Loading State -->
+            <section id="loadingSection" class="loading-section hidden">
+                <div class="loader">
+                    <div class="loader-ring"></div>
+                    <p class="loader-text">Finding perfect tracks for you...</p>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="resultsSection" class="results-section hidden">
+                <div class="results-header">
+                    <h2>🎶 Your Playlist</h2>
+                    <p id="searchQuery" class="search-query"></p>
+                </div>
+                <div id="songsGrid" class="songs-grid">
+                    <!-- Songs will be populated here -->
+                </div>
+                <div class="results-actions">
+                    <button id="copyPlaylistBtn" class="btn btn-primary">
+                        <span class="btn-icon">📋</span> Copy Playlist
+                    </button>
+                    <button id="regenerateBtn" class="btn btn-secondary">
+                        <span class="btn-icon">🔄</span> Generate New
+                    </button>
+                </div>
+                <p id="copyFeedback" class="copy-feedback hidden">✅ Copied to clipboard!</p>
+            </section>
+
+            <!-- History Section -->
+            <section id="historySection" class="history-section glass-card hidden">
+                <div class="history-header">
+                    <h2>📜 Recent Playlists</h2>
+                    <button id="clearHistory" class="btn btn-ghost">Clear</button>
+                </div>
+                <div id="historyList" class="history-list">
+                    <!-- History will be populated here -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Powered by Spotify API & AI 🎵</p>
+        </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+
+</html>
