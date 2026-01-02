@@ -32,6 +32,17 @@ let currentSongs = [];
 let audioPlayer = null;
 let currentlyPlayingId = null;
 
+// Auth state
+let currentUserId = null;
+
+// Auth elements
+const loginBtn = document.getElementById('loginBtn');
+const userInfo = document.getElementById('userInfo');
+const userName = document.getElementById('userName');
+const logoutBtn = document.getElementById('logoutBtn');
+const saveToSpotifyBtn = document.getElementById('saveToSpotifyBtn');
+const saveFeedback = document.getElementById('saveFeedback');
+
 // ========== Activity Presets ==========
 const activityPresets = [
     { name: '📚 Studying', value: 'studying' },
@@ -53,6 +64,7 @@ function init() {
     renderPresets();
     loadHistory();
     setupEventListeners();
+    checkLoginStatus();
 }
 
 function renderPresets() {
@@ -291,6 +303,11 @@ function displayResults(data) {
     resultsSection.classList.remove('hidden');
     resultsSection.scrollIntoView({ behavior: 'smooth' });
 
+    // Show save button if logged in
+    if (currentUserId && saveToSpotifyBtn) {
+        saveToSpotifyBtn.classList.remove('hidden');
+    }
+
     // Refresh history
     loadHistory();
 }
@@ -412,6 +429,119 @@ function formatTime(isoString) {
     } catch {
         return '';
     }
+}
+
+// ========== Spotify Auth ==========
+function checkLoginStatus() {
+    // Check URL params for login callback
+    const urlParams = new URLSearchParams(window.location.search);
+    const loggedInUser = urlParams.get('logged_in');
+    const error = urlParams.get('error');
+
+    if (error) {
+        console.log('Auth error:', error);
+    }
+
+    if (loggedInUser) {
+        // Store user ID and fetch user info
+        currentUserId = loggedInUser;
+        localStorage.setItem('moodtunes_user', loggedInUser);
+
+        // Clean URL
+        window.history.replaceState({}, document.title, '/');
+
+        // Fetch user info
+        fetchUserInfo(loggedInUser);
+    } else {
+        // Check localStorage
+        const storedUser = localStorage.getItem('moodtunes_user');
+        if (storedUser) {
+            currentUserId = storedUser;
+            fetchUserInfo(storedUser);
+        }
+    }
+}
+
+async function fetchUserInfo(userId) {
+    try {
+        const res = await fetch(`/api/user/${userId}`);
+        const data = await res.json();
+
+        if (data.logged_in) {
+            updateAuthUI(true, data.display_name);
+        } else {
+            // Token expired, clear storage
+            localStorage.removeItem('moodtunes_user');
+            currentUserId = null;
+            updateAuthUI(false);
+        }
+    } catch {
+        updateAuthUI(false);
+    }
+}
+
+function updateAuthUI(isLoggedIn, displayName = '') {
+    if (isLoggedIn) {
+        loginBtn.classList.add('hidden');
+        userInfo.classList.remove('hidden');
+        userName.textContent = `👤 ${displayName}`;
+
+        // Show save button if results are visible
+        if (!resultsSection.classList.contains('hidden')) {
+            saveToSpotifyBtn.classList.remove('hidden');
+        }
+
+        // Setup logout
+        logoutBtn.onclick = () => {
+            localStorage.removeItem('moodtunes_user');
+            window.location.href = `/logout/${currentUserId}`;
+        };
+    } else {
+        loginBtn.classList.remove('hidden');
+        userInfo.classList.add('hidden');
+        saveToSpotifyBtn.classList.add('hidden');
+    }
+}
+
+async function handleSaveToSpotify() {
+    if (!currentUserId || currentSongs.length === 0) return;
+
+    const playlistName = prompt('Enter playlist name:', 'MoodTunes Playlist');
+    if (!playlistName) return;
+
+    saveFeedback.classList.remove('hidden');
+    saveFeedback.textContent = '⏳ Saving to Spotify...';
+    saveFeedback.className = 'save-feedback';
+
+    try {
+        const res = await fetch('/api/save-playlist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: currentUserId,
+                playlist_name: playlistName,
+                track_ids: currentSongs.map(s => s.id)
+            })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            saveFeedback.innerHTML = `✅ Saved! <a href="${data.playlist_url}" target="_blank">Open in Spotify</a>`;
+            saveFeedback.className = 'save-feedback success';
+        } else {
+            saveFeedback.textContent = '❌ Failed to save: ' + (data.detail || 'Unknown error');
+            saveFeedback.className = 'save-feedback error';
+        }
+    } catch (err) {
+        saveFeedback.textContent = '❌ Error saving playlist';
+        saveFeedback.className = 'save-feedback error';
+    }
+}
+
+// Add save button listener
+if (saveToSpotifyBtn) {
+    saveToSpotifyBtn.addEventListener('click', handleSaveToSpotify);
 }
 
 // ========== Start ==========

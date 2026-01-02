@@ -27,9 +27,21 @@
     <div class="app-container">
         <!-- Header -->
         <header class="header">
-            <div class="logo">
-                <span class="logo-icon">🎵</span>
-                <span class="logo-text">MoodTunes</span>
+            <div class="header-top">
+                <div class="logo">
+                    <span class="logo-icon">🎵</span>
+                    <span class="logo-text">MoodTunes</span>
+                </div>
+                <!-- Spotify Auth -->
+                <div id="authSection" class="auth-section">
+                    <a href="/login" id="loginBtn" class="btn btn-spotify">
+                        <span class="btn-icon">🎧</span> Login with Spotify
+                    </a>
+                    <div id="userInfo" class="user-info hidden">
+                        <span id="userName" class="user-name"></span>
+                        <a href="#" id="logoutBtn" class="logout-btn">Logout</a>
+                    </div>
+                </div>
             </div>
             <p class="tagline">AI-Powered Playlist Generator</p>
         </header>
@@ -259,6 +271,9 @@
                     <!-- Songs will be populated here -->
                 </div>
                 <div class="results-actions">
+                    <button id="saveToSpotifyBtn" class="btn btn-spotify hidden">
+                        <span class="btn-icon">💚</span> Save to Spotify
+                    </button>
                     <button id="copyPlaylistBtn" class="btn btn-primary">
                         <span class="btn-icon">📋</span> Copy Playlist
                     </button>
@@ -267,6 +282,7 @@
                     </button>
                 </div>
                 <p id="copyFeedback" class="copy-feedback hidden">✅ Copied to clipboard!</p>
+                <p id="saveFeedback" class="save-feedback hidden"></p>
             </section>
 
             <!-- History Section -->

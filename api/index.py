@@ -326,3 +326,154 @@ async def clear_history():
     global playlist_history
     playlist_history = []
     return {"success": True, "message": "History cleared"}
+
+
+# ---------- SPOTIFY OAUTH ----------
+# Simple in-memory token storage (for demo - in production use sessions/database)
+user_tokens = {}
+
+REDIRECT_URI = os.getenv("SPOTIFY_REDIRECT_URI", "https://moodtunes-sigma.vercel.app/callback")
+SCOPES = "playlist-modify-public playlist-modify-private user-read-private"
+
+
+@app.get("/login")
+async def spotify_login():
+    """Redirect to Spotify authorization"""
+    client_id = os.getenv("SPOTIFY_CLIENT_ID")
+    
+    auth_url = (
+        f"https://accounts.spotify.com/authorize?"
+        f"client_id={client_id}&"
+        f"response_type=code&"
+        f"redirect_uri={REDIRECT_URI}&"
+        f"scope={SCOPES}"
+    )
+    
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url=auth_url)
+
+
+@app.get("/callback")
+async def spotify_callback(code: str = None, error: str = None):
+    """Handle Spotify OAuth callback"""
+    from fastapi.responses import RedirectResponse
+    
+    if error:
+        return RedirectResponse(url="/?error=auth_failed")
+    
+    if not code:
+        return RedirectResponse(url="/?error=no_code")
+    
+    # Exchange code for tokens
+    client_id = os.getenv("SPOTIFY_CLIENT_ID")
+    client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
+    
+    auth_str = f"{client_id}:{client_secret}"
+    b64_auth = base64.b64encode(auth_str.encode()).decode()
+    
+    token_url = "https://accounts.spotify.com/api/token"
+    headers = {
+        "Authorization": f"Basic {b64_auth}",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    data = {
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": REDIRECT_URI
+    }
+    
+    try:
+        res = requests.post(token_url, headers=headers, data=data)
+        res.raise_for_status()
+        tokens = res.json()
+        
+        # Get user profile
+        user_headers = {"Authorization": f"Bearer {tokens['access_token']}"}
+        user_res = requests.get("https://api.spotify.com/v1/me", headers=user_headers)
+        user_data = user_res.json()
+        
+        # Store tokens with user ID
+        user_id = user_data.get("id", "default")
+        user_tokens[user_id] = {
+            "access_token": tokens["access_token"],
+            "refresh_token": tokens.get("refresh_token"),
+            "user_id": user_id,
+            "display_name": user_data.get("display_name", "User")
+        }
+        
+        # Redirect to home with success
+        return RedirectResponse(url=f"/?logged_in={user_id}")
+        
+    except Exception as e:
+        return RedirectResponse(url=f"/?error={str(e)}")
+
+
+@app.get("/api/user/{user_id}")
+async def get_user_info(user_id: str):
+    """Get logged in user info"""
+    if user_id in user_tokens:
+        return {
+            "logged_in": True,
+            "user_id": user_tokens[user_id]["user_id"],
+            "display_name": user_tokens[user_id]["display_name"]
+        }
+    return {"logged_in": False}
+
+
+class SavePlaylistRequest(BaseModel):
+    user_id: str
+    playlist_name: str
+    track_ids: List[str]
+
+
+@app.post("/api/save-playlist")
+async def save_playlist(req: SavePlaylistRequest):
+    """Save playlist to user's Spotify account"""
+    
+    if req.user_id not in user_tokens:
+        raise HTTPException(status_code=401, detail="Not logged in")
+    
+    access_token = user_tokens[req.user_id]["access_token"]
+    spotify_user_id = user_tokens[req.user_id]["user_id"]
+    headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
+    
+    try:
+        # Create playlist
+        create_url = f"https://api.spotify.com/v1/users/{spotify_user_id}/playlists"
+        create_data = {
+            "name": req.playlist_name,
+            "description": "Created by MoodTunes AI 🎵",
+            "public": True
+        }
+        
+        create_res = requests.post(create_url, headers=headers, json=create_data)
+        create_res.raise_for_status()
+        playlist = create_res.json()
+        
+        # Add tracks
+        add_url = f"https://api.spotify.com/v1/playlists/{playlist['id']}/tracks"
+        track_uris = [f"spotify:track:{tid}" for tid in req.track_ids]
+        
+        add_res = requests.post(add_url, headers=headers, json={"uris": track_uris})
+        add_res.raise_for_status()
+        
+        return {
+            "success": True,
+            "playlist_id": playlist["id"],
+            "playlist_url": playlist["external_urls"]["spotify"],
+            "message": f"Playlist '{req.playlist_name}' saved to Spotify!"
+        }
+        
+    except requests.RequestException as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save playlist: {str(e)}")
+
+
+@app.get("/logout/{user_id}")
+async def logout(user_id: str):
+    """Logout user"""
+    from fastapi.responses import RedirectResponse
+    
+    if user_id in user_tokens:
+        del user_tokens[user_id]
+    
+    return RedirectResponse(url="/")

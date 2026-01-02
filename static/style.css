@@ -201,6 +201,86 @@ body {
     font-weight: 400;
 }
 
+/* ---------- Header Auth Section ---------- */
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.auth-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-spotify {
+    background: #1DB954;
+    color: #000;
+    font-weight: 600;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+
+.btn-spotify:hover {
+    background: #1ed760;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(29, 185, 84, 0.4);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(29, 185, 84, 0.15);
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--primary);
+}
+
+.user-name {
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.logout-btn {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: var(--transition-fast);
+}
+
+.logout-btn:hover {
+    color: var(--text-primary);
+}
+
+/* ---------- Save Feedback ---------- */
+.save-feedback {
+    text-align: center;
+    font-size: 0.95rem;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    margin-top: 10px;
+}
+
+.save-feedback.success {
+    color: var(--primary);
+    background: rgba(29, 185, 84, 0.1);
+}
+
+.save-feedback.success a {
+    color: var(--primary);
+    text-decoration: underline;
+}
+
+.save-feedback.error {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
 /* ---------- Glass Card ---------- */
 .glass-card {
     background: var(--gradient-card);
