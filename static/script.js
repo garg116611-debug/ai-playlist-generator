@@ -79,7 +79,7 @@ function initPWA() {
             .catch((err) => console.log('MoodTunes: SW registration failed', err));
     }
 
-    // Listen for install prompt
+    // Listen for install prompt (Android/Chrome only)
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
