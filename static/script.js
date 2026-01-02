@@ -65,6 +65,60 @@ function init() {
     loadHistory();
     setupEventListeners();
     checkLoginStatus();
+    initPWA();
+}
+
+// ========== PWA Setup ==========
+let deferredPrompt = null;
+
+function initPWA() {
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/static/sw.js')
+            .then((reg) => console.log('MoodTunes: Service Worker registered'))
+            .catch((err) => console.log('MoodTunes: SW registration failed', err));
+    }
+
+    // Listen for install prompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        showInstallButton();
+    });
+
+    // Handle successful install
+    window.addEventListener('appinstalled', () => {
+        console.log('MoodTunes: App installed successfully');
+        hideInstallButton();
+        deferredPrompt = null;
+    });
+}
+
+function showInstallButton() {
+    const installBtn = document.getElementById('installBtn');
+    if (installBtn) {
+        installBtn.classList.remove('hidden');
+    }
+}
+
+function hideInstallButton() {
+    const installBtn = document.getElementById('installBtn');
+    if (installBtn) {
+        installBtn.classList.add('hidden');
+    }
+}
+
+async function handleInstallClick() {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+
+    if (outcome === 'accepted') {
+        console.log('MoodTunes: User accepted install');
+    }
+    deferredPrompt = null;
+    hideInstallButton();
 }
 
 function renderPresets() {

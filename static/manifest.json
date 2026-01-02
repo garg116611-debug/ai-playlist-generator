@@ -1,21 +1,67 @@
 {
-    "name": "MoodTunes",
+    "name": "MoodTunes - AI Playlist Generator",
     "short_name": "MoodTunes",
-    "description": "AI-Powered Playlist Generator",
+    "description": "Generate personalized Spotify playlists based on your mood using AI",
     "start_url": "/",
+    "scope": "/",
     "display": "standalone",
+    "orientation": "portrait",
     "background_color": "#0a0a0f",
     "theme_color": "#1DB954",
+    "categories": [
+        "music",
+        "entertainment"
+    ],
     "icons": [
         {
             "src": "/static/favicon.png",
+            "sizes": "48x48",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/static/favicon.png",
+            "sizes": "72x72",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/static/favicon.png",
+            "sizes": "96x96",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/static/favicon.png",
+            "sizes": "128x128",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/static/favicon.png",
             "sizes": "192x192",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/static/favicon.png",
+            "sizes": "384x384",
+            "type": "image/png",
+            "purpose": "any maskable"
         },
         {
             "src": "/static/favicon.png",
             "sizes": "512x512",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "screenshots": [],
+    "shortcuts": [
+        {
+            "name": "Generate Playlist",
+            "url": "/",
+            "description": "Create a new mood-based playlist"
         }
     ]
 }

@@ -230,6 +230,36 @@ body {
     box-shadow: 0 4px 15px rgba(29, 185, 84, 0.4);
 }
 
+/* Install App Button */
+.btn-install {
+    background: linear-gradient(135deg, #8b5cf6, #a855f7);
+    color: #fff;
+    font-weight: 600;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    border: none;
+    cursor: pointer;
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.btn-install:hover {
+    background: linear-gradient(135deg, #a855f7, #c084fc);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+}
+
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 20px 5px rgba(168, 85, 247, 0.3);
+    }
+}
+
 .user-info {
     display: flex;
     align-items: center;
