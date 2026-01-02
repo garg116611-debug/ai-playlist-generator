@@ -431,11 +431,12 @@ function formatTime(isoString) {
     }
 }
 
-// ========== Spotify Auth ==========
+// ========== Spotify Auth (Cookie-based) ==========
 function checkLoginStatus() {
     // Check URL params for login callback
     const urlParams = new URLSearchParams(window.location.search);
     const loggedInUser = urlParams.get('logged_in');
+    const displayName = urlParams.get('name');
     const error = urlParams.get('error');
 
     if (error) {
@@ -443,35 +444,27 @@ function checkLoginStatus() {
     }
 
     if (loggedInUser) {
-        // Store user ID and fetch user info
-        currentUserId = loggedInUser;
-        localStorage.setItem('moodtunes_user', loggedInUser);
-
         // Clean URL
         window.history.replaceState({}, document.title, '/');
 
-        // Fetch user info
-        fetchUserInfo(loggedInUser);
+        // Update UI immediately with URL params
+        currentUserId = loggedInUser;
+        updateAuthUI(true, displayName || 'User');
     } else {
-        // Check localStorage
-        const storedUser = localStorage.getItem('moodtunes_user');
-        if (storedUser) {
-            currentUserId = storedUser;
-            fetchUserInfo(storedUser);
-        }
+        // Check cookies via API
+        fetchUserInfo();
     }
 }
 
-async function fetchUserInfo(userId) {
+async function fetchUserInfo() {
     try {
-        const res = await fetch(`/api/user/${userId}`);
+        const res = await fetch('/api/me');
         const data = await res.json();
 
         if (data.logged_in) {
+            currentUserId = data.user_id;
             updateAuthUI(true, data.display_name);
         } else {
-            // Token expired, clear storage
-            localStorage.removeItem('moodtunes_user');
             currentUserId = null;
             updateAuthUI(false);
         }
@@ -493,8 +486,7 @@ function updateAuthUI(isLoggedIn, displayName = '') {
 
         // Setup logout
         logoutBtn.onclick = () => {
-            localStorage.removeItem('moodtunes_user');
-            window.location.href = `/logout/${currentUserId}`;
+            window.location.href = '/logout';
         };
     } else {
         loginBtn.classList.remove('hidden');
@@ -517,8 +509,8 @@ async function handleSaveToSpotify() {
         const res = await fetch('/api/save-playlist', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',  // Important: include cookies
             body: JSON.stringify({
-                user_id: currentUserId,
                 playlist_name: playlistName,
                 track_ids: currentSongs.map(s => s.id)
             })
@@ -530,7 +522,7 @@ async function handleSaveToSpotify() {
             saveFeedback.innerHTML = `✅ Saved! <a href="${data.playlist_url}" target="_blank">Open in Spotify</a>`;
             saveFeedback.className = 'save-feedback success';
         } else {
-            saveFeedback.textContent = '❌ Failed to save: ' + (data.detail || 'Unknown error');
+            saveFeedback.textContent = '❌ ' + (data.detail || 'Failed to save');
             saveFeedback.className = 'save-feedback error';
         }
     } catch (err) {

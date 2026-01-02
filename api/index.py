@@ -328,9 +328,10 @@ async def clear_history():
     return {"success": True, "message": "History cleared"}
 
 
-# ---------- SPOTIFY OAUTH ----------
-# Simple in-memory token storage (for demo - in production use sessions/database)
-user_tokens = {}
+# ---------- SPOTIFY OAUTH (Cookie-based for Vercel) ----------
+from fastapi import Request, Response
+from fastapi.responses import RedirectResponse
+import urllib.parse
 
 REDIRECT_URI = os.getenv("SPOTIFY_REDIRECT_URI", "https://moodtunes-sigma.vercel.app/callback")
 SCOPES = "playlist-modify-public playlist-modify-private user-read-private"
@@ -345,18 +346,16 @@ async def spotify_login():
         f"https://accounts.spotify.com/authorize?"
         f"client_id={client_id}&"
         f"response_type=code&"
-        f"redirect_uri={REDIRECT_URI}&"
-        f"scope={SCOPES}"
+        f"redirect_uri={urllib.parse.quote(REDIRECT_URI)}&"
+        f"scope={urllib.parse.quote(SCOPES)}"
     )
     
-    from fastapi.responses import RedirectResponse
     return RedirectResponse(url=auth_url)
 
 
 @app.get("/callback")
 async def spotify_callback(code: str = None, error: str = None):
-    """Handle Spotify OAuth callback"""
-    from fastapi.responses import RedirectResponse
+    """Handle Spotify OAuth callback - store token in cookie"""
     
     if error:
         return RedirectResponse(url="/?error=auth_failed")
@@ -392,49 +391,76 @@ async def spotify_callback(code: str = None, error: str = None):
         user_res = requests.get("https://api.spotify.com/v1/me", headers=user_headers)
         user_data = user_res.json()
         
-        # Store tokens with user ID
         user_id = user_data.get("id", "default")
-        user_tokens[user_id] = {
-            "access_token": tokens["access_token"],
-            "refresh_token": tokens.get("refresh_token"),
-            "user_id": user_id,
-            "display_name": user_data.get("display_name", "User")
-        }
+        display_name = user_data.get("display_name", "User")
+        access_token = tokens["access_token"]
         
-        # Redirect to home with success
-        return RedirectResponse(url=f"/?logged_in={user_id}")
+        # Create response with cookies
+        response = RedirectResponse(url=f"/?logged_in={user_id}&name={urllib.parse.quote(display_name)}")
+        
+        # Set HTTP-only cookies (secure in production)
+        response.set_cookie(
+            key="spotify_token",
+            value=access_token,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            max_age=3600  # 1 hour
+        )
+        response.set_cookie(
+            key="spotify_user",
+            value=user_id,
+            httponly=False,  # JS can read this
+            secure=True,
+            samesite="lax",
+            max_age=3600
+        )
+        response.set_cookie(
+            key="spotify_name",
+            value=display_name,
+            httponly=False,
+            secure=True,
+            samesite="lax",
+            max_age=3600
+        )
+        
+        return response
         
     except Exception as e:
         return RedirectResponse(url=f"/?error={str(e)}")
 
 
-@app.get("/api/user/{user_id}")
-async def get_user_info(user_id: str):
-    """Get logged in user info"""
-    if user_id in user_tokens:
+@app.get("/api/me")
+async def get_current_user(request: Request):
+    """Get logged in user info from cookie"""
+    user_id = request.cookies.get("spotify_user")
+    display_name = request.cookies.get("spotify_name")
+    token = request.cookies.get("spotify_token")
+    
+    if user_id and token:
         return {
             "logged_in": True,
-            "user_id": user_tokens[user_id]["user_id"],
-            "display_name": user_tokens[user_id]["display_name"]
+            "user_id": user_id,
+            "display_name": display_name or "User"
         }
     return {"logged_in": False}
 
 
 class SavePlaylistRequest(BaseModel):
-    user_id: str
     playlist_name: str
     track_ids: List[str]
 
 
 @app.post("/api/save-playlist")
-async def save_playlist(req: SavePlaylistRequest):
-    """Save playlist to user's Spotify account"""
+async def save_playlist(req: SavePlaylistRequest, request: Request):
+    """Save playlist to user's Spotify account using cookie token"""
     
-    if req.user_id not in user_tokens:
-        raise HTTPException(status_code=401, detail="Not logged in")
+    access_token = request.cookies.get("spotify_token")
+    spotify_user_id = request.cookies.get("spotify_user")
     
-    access_token = user_tokens[req.user_id]["access_token"]
-    spotify_user_id = user_tokens[req.user_id]["user_id"]
+    if not access_token or not spotify_user_id:
+        raise HTTPException(status_code=401, detail="Not logged in. Please login with Spotify first.")
+    
     headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
     
     try:
@@ -447,6 +473,10 @@ async def save_playlist(req: SavePlaylistRequest):
         }
         
         create_res = requests.post(create_url, headers=headers, json=create_data)
+        
+        if create_res.status_code == 401:
+            raise HTTPException(status_code=401, detail="Session expired. Please login again.")
+        
         create_res.raise_for_status()
         playlist = create_res.json()
         
@@ -468,12 +498,12 @@ async def save_playlist(req: SavePlaylistRequest):
         raise HTTPException(status_code=500, detail=f"Failed to save playlist: {str(e)}")
 
 
-@app.get("/logout/{user_id}")
-async def logout(user_id: str):
-    """Logout user"""
-    from fastapi.responses import RedirectResponse
-    
-    if user_id in user_tokens:
-        del user_tokens[user_id]
-    
-    return RedirectResponse(url="/")
+@app.get("/logout")
+async def logout():
+    """Logout user by clearing cookies"""
+    response = RedirectResponse(url="/")
+    response.delete_cookie("spotify_token")
+    response.delete_cookie("spotify_user")
+    response.delete_cookie("spotify_name")
+    return response
+
